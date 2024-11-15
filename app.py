@@ -14,6 +14,8 @@
 
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
+from collections import Counter
 
 # Load data
 clustered_df = pd.read_csv("clustered_data.csv")
@@ -50,3 +52,49 @@ if selected_keyword:
 # Display filtered movies with only keywords and genres
 st.write(f"Movies in Cluster {selected_cluster} (Filtered by Selected Genres and Keywords):")
 st.write(cluster_df[['title', 'genres', 'keywords']])
+
+# Keyword Frequency Chart
+st.write("### Keyword Frequency in Cluster")
+keywords_list = [keyword for keywords in cluster_df['keywords'].dropna() for keyword in keywords.split(', ')]
+keywords_counter = Counter(keywords_list)
+common_keywords = keywords_counter.most_common(10)
+keywords, counts = zip(*common_keywords)
+
+plt.figure(figsize=(10, 6))
+plt.barh(keywords, counts)
+plt.xlabel("Frequency")
+plt.title("Top 10 Keywords in Cluster")
+st.pyplot(plt)
+
+# Genre Frequency Chart
+st.write("### Genre Frequency in Cluster")
+genres_list = [genre for genres in cluster_df['genres'].dropna() for genre in genres.split(', ')]
+genres_counter = Counter(genres_list)
+common_genres = genres_counter.most_common(10)
+genres, genre_counts = zip(*common_genres)
+
+plt.figure(figsize=(10, 6))
+plt.barh(genres, genre_counts)
+plt.xlabel("Frequency")
+plt.title("Top 10 Genres in Cluster")
+st.pyplot(plt)
+
+# Cluster Consistency Metric
+st.write("### Cluster Consistency Metric")
+if len(cluster_df) > 1:
+    # Calculate pairwise keyword overlap
+    keyword_sets = [set(keywords.split(', ')) for keywords in cluster_df['keywords'].dropna()]
+    total_pairs = 0
+    total_overlap = 0
+
+    for i in range(len(keyword_sets)):
+        for j in range(i + 1, len(keyword_sets)):
+            overlap = len(keyword_sets[i].intersection(keyword_sets[j]))
+            total_overlap += overlap
+            total_pairs += 1
+
+    avg_overlap = total_overlap / total_pairs if total_pairs > 0 else 0
+    st.write(f"Average Keyword Overlap Between Movies in Cluster: {avg_overlap:.2f}")
+else:
+    st.write("Not enough movies in this cluster to calculate consistency metric.")
+
