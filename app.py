@@ -16,8 +16,11 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from collections import Counter
+import plotly.express as px
+import numpy as np
+import seaborn as sns
 
-clustered_df = pd.read_csv("clustered_data.csv")
+clustered_df = pd.read_csv("clustered_data_v2.csv")
 movies_df = pd.read_csv("movies.csv")
 
 merged_df = clustered_df.merge(movies_df, on='id')
@@ -42,7 +45,8 @@ selected_keyword = st.multiselect("Filter by Keyword:", all_keywords)
 if selected_keyword:
     cluster_df = cluster_df[cluster_df['keywords'].apply(lambda x: any(keyword in x for keyword in selected_keyword))]
 
-st.write(f"Movies in Cluster {selected_cluster} (Filtered by Selected Genres and Keywords):")
+st.write(f"**Movies in Cluster {selected_cluster} (Filtered by Selected Genres and Keywords):**")
+st.write(f"Num of movies: **{len(cluster_df)}**")
 st.write(cluster_df[['title', 'genres', 'keywords']])
 
 st.write("### Keyword Frequency in Cluster")
@@ -50,16 +54,42 @@ keywords_list = [keyword for keywords in cluster_df['keywords'].dropna() for key
 keywords_counter = Counter(keywords_list)
 common_keywords = keywords_counter.most_common(10)
 keywords, counts = zip(*common_keywords)
+keywords_counts = pd.DataFrame({'Keywords': keywords, 'Frequency': counts})
 
-plt.figure(figsize=(10, 6))
-plt.barh(keywords, counts)
-plt.xlabel("Frequency")
-plt.title("Top 10 Keywords in Cluster")
-st.pyplot(plt)
+# plt.figure(figsize=(10, 6))
+# plt.barh(keywords, counts)
+# plt.xlabel("Frequency")
+# plt.title("Top 10 Keywords in Cluster")
+# st.pyplot(plt)
+
+fig = px.bar(
+    keywords_counts,
+    x='Frequency',
+    y='Keywords',
+    orientation='h',
+    title="Top 10 Keywords in Cluster",
+    labels={"Frequency": "Frequency", "Keywords": "Keywords"}
+)
+
+fig.update_layout(
+    xaxis_title="Frequency",
+    yaxis_title="Keywords",
+    title_font_size=20,
+    xaxis=dict(showgrid=True),
+    yaxis=dict(showgrid=False),
+    height=600, 
+)
+st.plotly_chart(fig)
+
+
+# TODO: automate this?
+all_unique_genres = ['action', 'adventure', 'animation', 'comedy', 'crime', 'documentary', 'drama', 'family', 'fantasy', 'history', 'horror', 'music', 'mystery', 'romance', 'science fiction', 'thriller', 'tv movie', 'war', 'western']
 
 st.write("### Genre Frequency in Cluster")
-genres_list = [genre for genres in cluster_df['genres'].dropna() for genre in genres.split(', ')]
+genres_list = [genre.lower() for genres in cluster_df['genres'].dropna() for genre in genres.split(', ')]
 genres_counter = Counter(genres_list)
+
+
 common_genres = genres_counter.most_common(10)
 genres, genre_counts = zip(*common_genres)
 
@@ -68,6 +98,29 @@ plt.barh(genres, genre_counts)
 plt.xlabel("Frequency")
 plt.title("Top 10 Genres in Cluster")
 st.pyplot(plt)
+
+
+# genres heatmap
+genre_matrix = np.array([[genres_counter.get(genre, 0) for genre in all_unique_genres]])
+
+print(genre_matrix)
+
+fig, ax = plt.subplots(figsize=(15, 3))
+sns.heatmap(genre_matrix, 
+            annot=True, 
+            fmt='.0f',
+            cmap='Blues', 
+            xticklabels=all_unique_genres,
+            yticklabels=False,
+            ax=ax,
+            cbar_kws={'label': 'Frequency'})
+
+plt.title('Genre Frequency Distribution')
+plt.xticks(rotation=45, ha='right')
+plt.tight_layout()
+
+st.write("### Genre Frequency Heatmap")
+st.pyplot(fig)
 
 st.write("### Cluster Consistency Metric")
 if len(cluster_df) > 1:
