@@ -23,8 +23,8 @@ movies_df = pd.read_csv("movies.csv")
 merged_df = clustered_df.merge(movies_df, on='id')
 
 # Streamlit app layout
-st.title("Movie Cluster Exploration")
-st.write("Explore movies by clusters, genres, and keywords.")
+st.title("Movie Cluster Analysis by Keywords and Genres")
+st.write("Evaluate the coherence of clusters based on keywords and genres.")
 
 # Cluster selection
 cluster_options = sorted(merged_df['cluster'].unique())
@@ -47,18 +47,6 @@ selected_keyword = st.multiselect("Filter by Keyword:", all_keywords)
 if selected_keyword:
     cluster_df = cluster_df[cluster_df['keywords'].apply(lambda x: any(keyword in x for keyword in selected_keyword))]
 
-# Display filtered movies
-st.write(f"Movies in Cluster {selected_cluster}:")
-st.write(cluster_df[['title', 'vote_average', 'genres', 'release_date', 'popularity']])
-
-# Optional: Interactive chart with movie ratings and popularity
-st.write("### Ratings vs. Popularity")
-st.write("The chart below shows the distribution of ratings and popularity for movies in the selected cluster.")
-st.vega_lite_chart(cluster_df, {
-    "mark": "circle",
-    "encoding": {
-        "x": {"field": "vote_average", "type": "quantitative", "title": "Vote Average"},
-        "y": {"field": "popularity", "type": "quantitative", "title": "Popularity"},
-        "tooltip": [{"field": "title", "type": "nominal"}, {"field": "vote_average", "type": "quantitative"}, {"field": "popularity", "type": "quantitative"}]
-    }
-})
+# Display filtered movies with only keywords and genres
+st.write(f"Movies in Cluster {selected_cluster} (Filtered by Selected Genres and Keywords):")
+st.write(cluster_df[['title', 'genres', 'keywords']])
