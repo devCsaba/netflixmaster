@@ -1,9 +1,8 @@
 import streamlit as st
 import pandas as pd
 
-# Load Data
-user_history_df = pd.read_csv("data/users_history_v2.csv")
-movies_df = pd.read_csv("data/movies.csv")  # Placeholder for movie details
+user_history_df = pd.read_csv("users_history_v2.csv")
+movies_df = pd.read_csv("movies.csv")
 
 def get_user_history(user_id):
     watched_movies = user_history_df[user_history_df['user_id'] == int(user_id)]
