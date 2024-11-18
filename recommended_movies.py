@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 
 # Load Data
-clustered_df = pd.read_csv("data/clustered_data_v2.csv")
-movies_df = pd.read_csv("data/movies.csv")  # Assuming a generic movies file for details
+clustered_df = pd.read_csv("clustered_data_v2.csv")
+movies_df = pd.read_csv("movies.csv")  # Assuming a generic movies file for details
 
 def get_recommended_movies(user_id):
     # Placeholder for recommendation logic
