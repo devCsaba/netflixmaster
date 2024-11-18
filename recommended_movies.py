@@ -1,12 +1,10 @@
 import streamlit as st
 import pandas as pd
 
-# Load Data
 clustered_df = pd.read_csv("clustered_data_v2.csv")
-movies_df = pd.read_csv("movies.csv")  # Assuming a generic movies file for details
+movies_df = pd.read_csv("movies.csv")
 
 def get_recommended_movies(user_id):
-    # Placeholder for recommendation logic
     cluster_recommendations = {
         cluster: list(movies_df.sample(6)['id'])
         for cluster in clustered_df['cluster'].unique()
