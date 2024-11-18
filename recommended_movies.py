@@ -6,7 +6,7 @@ movies_df = pd.read_csv("movies.csv")
 
 def get_recommended_movies(user_id):
     cluster_recommendations = {
-        cluster: list(movies_df.sample(6)['id'])
+        int(cluster): [int(movie_id) for movie_id in movies_df.sample(6)['id']]
         for cluster in clustered_df['cluster'].unique()
     }
     return cluster_recommendations
@@ -18,6 +18,6 @@ def show():
     if user_id:
         recommendations = get_recommended_movies(user_id)
         st.write("Here are your recommended movies:")
-        st.json(recommendations)
+        st.json(recommendations)  # Displaying as JSON for easy viewing
     else:
         st.write("Please go back to the home page to select a User ID.")
