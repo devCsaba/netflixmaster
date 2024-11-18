@@ -1,10 +1,13 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import seaborn as sns
 from collections import Counter
 
 clustered_df = pd.read_csv("clustered_data_v2.csv")
 movies_df = pd.read_csv("movies.csv")
+
+unique_clusters = sorted(clustered_df['cluster'].unique())
 
 def show():
     st.header("Cluster Analysis")
@@ -36,3 +39,25 @@ def show():
     plt.xlabel("Frequency")
     plt.title("Top 10 Genres in Movies")
     st.pyplot(plt)
+
+    st.write("### Cluster Correlation Heatmap")
+    # Generate a pivot table or dummy correlation matrix based on available data
+    cluster_pivot = pd.crosstab(index=clustered_df['cluster'], columns=clustered_df['cluster'])
+    plt.figure(figsize=(12, 8))
+    sns.heatmap(cluster_pivot, cmap="YlGnBu", annot=False, cbar=True)
+    st.pyplot(plt)
+
+    st.write("### Explore Movies in a Specific Cluster")
+    selected_cluster = st.selectbox("Select a Cluster ID:", options=["Select a Cluster"] + list(unique_clusters))
+    cluster_id_input = st.text_input("Or enter a Cluster ID:")
+
+    cluster_id = int(cluster_id_input) if cluster_id_input else (selected_cluster if selected_cluster != "Select a Cluster" else None)
+
+    if cluster_id is not None:
+        movies_in_cluster = clustered_df[clustered_df['cluster'] == int(cluster_id)]
+        movie_ids = movies_in_cluster['id'].tolist()
+        movie_details = movies_df[movies_df['id'].isin(movie_ids)][['title', 'genres', 'vote_average']]
+        
+        st.write(f"Movies in Cluster {cluster_id}:")
+        for _, movie in movie_details.iterrows():
+            st.write(f"{movie['title']} (Genre: {movie['genres']}, Rating: {movie['vote_average']})")
