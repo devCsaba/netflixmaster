@@ -10,10 +10,11 @@ def find_similar_movies(movie_title):
     selected_movie = movies_df[movies_df['title'].str.contains(movie_title, case=False)]
     
     if not selected_movie.empty:
-        cluster_id = clustered_df[clustered_df['id'] == selected_movie.iloc[0]['id']]['cluster'].values[0]
+        movie_id = selected_movie.iloc[0]['id']
+        cluster_id = clustered_df[clustered_df['id'] == movie_id]['cluster'].values[0]
         
         similar_movies = clustered_df[clustered_df['cluster'] == cluster_id]
-        similar_movie_ids = similar_movies['id'].sample(5).tolist()
+        similar_movie_ids = similar_movies['id'].tolist()
         
         return movies_df[movies_df['id'].isin(similar_movie_ids)][['title', 'genres', 'vote_average']]
     else:
@@ -21,7 +22,7 @@ def find_similar_movies(movie_title):
 
 def show():
     st.header("Find Similar Movies")
-    
+
     selected_movie_title = st.selectbox("Select a Movie Title:", options=["Select a Movie"] + list(all_movie_titles))
     
     movie_title_input = st.text_input("Or enter a Movie Title:")
