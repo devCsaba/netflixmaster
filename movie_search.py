@@ -1,9 +1,8 @@
 import streamlit as st
 import pandas as pd
 
-# Load Data
-clustered_df = pd.read_csv("data/clustered_data_v2.csv")
-movies_df = pd.read_csv("data/movies.csv")
+clustered_df = pd.read_csv("clustered_data_v2.csv")
+movies_df = pd.read_csv("movies.csv")
 
 def find_similar_movies(movie_title):
     selected_movie = movies_df[movies_df['title'].str.contains(movie_title, case=False)]
