@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from collections import Counter
+import plotly.express as px
 
 clustered_df = pd.read_csv("clustered_data_v2.csv")
 movies_df = pd.read_csv("movies.csv")
