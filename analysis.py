@@ -3,8 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from collections import Counter
-import plotly.express as px
-import numpy as np
 
 clustered_df = pd.read_csv("clustered_data_v2.csv")
 movies_df = pd.read_csv("movies.csv")
@@ -50,28 +48,10 @@ def show():
         st.pyplot(plt)
 
         st.write("### Genre Frequency Heatmap")
-        all_genres = sorted(set(genre.lower() for genres in movies_df['genres'].dropna() for genre in genres.split(', ')))
-        genre_matrix = np.array([[genres_counter.get(genre, 0) for genre in all_genres]])
-
-        fig, ax = plt.subplots(figsize=(15, 3))
-        sns.heatmap(genre_matrix, annot=True, fmt='.0f', cmap='Blues', xticklabels=all_genres, yticklabels=False, cbar_kws={'label': 'Frequency'})
-        plt.xticks(rotation=45, ha='right')
+        genre_freq = Counter(genres_list)
+        genre_df = pd.DataFrame.from_dict(genre_freq, orient='index', columns=['Frequency']).reindex(sorted(genre_freq.keys()))
+        
+        fig, ax = plt.subplots(figsize=(10, 1))
+        sns.heatmap(genre_df.T, cmap="YlGnBu", annot=True, cbar=True, xticklabels=True, yticklabels=False)
         plt.title("Genre Frequency Distribution in Cluster")
         st.pyplot(fig)
-
-        st.write("### Cluster Consistency Metric")
-        if len(cluster_df) > 1:
-            keyword_sets = [set(keywords.split(', ')) for keywords in cluster_df['keywords'].dropna()]
-            total_pairs = 0
-            total_overlap = 0
-
-            for i in range(len(keyword_sets)):
-                for j in range(i + 1, len(keyword_sets)):
-                    overlap = len(keyword_sets[i].intersection(keyword_sets[j]))
-                    total_overlap += overlap
-                    total_pairs += 1
-
-            avg_overlap = total_overlap / total_pairs if total_pairs > 0 else 0
-            st.write(f"Average Keyword Overlap Between Movies in Cluster: {avg_overlap:.2f}")
-        else:
-            st.write("Not enough movies in this cluster to calculate consistency metric.")
