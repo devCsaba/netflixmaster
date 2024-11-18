@@ -1,4 +1,8 @@
 import streamlit as st
+import recommended_movies
+import user_history
+import movie_search
+import analysis
 
 # App Title
 st.title("Movie Recommendation System")
@@ -27,17 +31,13 @@ if page == "Home":
         st.write("Please enter your User ID in the sidebar to get personalized data.")
 
 elif page == "Recommended Movies":
-    from pages import recommended_movies
     recommended_movies.show()
 
 elif page == "Your History":
-    from pages import user_history
     user_history.show()
 
 elif page == "Movie Search":
-    from pages import movie_search
     movie_search.show()
 
 elif page == "Analysis":
-    from pages import analysis
     analysis.show()
