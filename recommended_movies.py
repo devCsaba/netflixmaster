@@ -1,39 +1,78 @@
 import streamlit as st
 import pandas as pd
+import json
+from PGRS import PGRS
 
 clustered_df = pd.read_csv("clustered_data_v2.csv")
-movies_df = pd.read_csv("movies.csv")
+movies_df = pd.read_csv("movies2.csv")
+pgrs = PGRS()
 
-sample_user_recommendations = {
-    1: {
-        0: [163814, 14891, 40353, 39282, 10002, 9074],
-        1: [9388, 11910, 12110, 7010, 22292, 158916],
-    },
-    2: {
-        0: [592230, 25598, 840, 426249, 52109, 450487],
-        3: [866413, 14456, 215, 91979, 74725, 283995],
-    },
-}
+def parse_user_watch_history(user_id):
+    try:
+        with open('users_history_v2.json', 'r') as file:
+            data = json.load(file)
+        
+        for user in data:
+            if user['user_id'] == user_id:
+                return user.get('watched_movies', [])
+        
+        return []
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return []
 
-def get_recommended_movies(user_id):
-    recommendations = sample_user_recommendations.get(int(user_id), {})
+def get_user_watch_history(user_id):
+    #recommendations = sample_user_recommendations.get(int(user_id), {})
+    #movie_ids = [movie_id for cluster in recommendations.values() for movie_id in cluster]
 
-    movie_ids = [movie_id for cluster in recommendations.values() for movie_id in cluster]
+    movie_ids = parse_user_watch_history(user_id)
+    movie_details = movies_df[movies_df['id'].isin(movie_ids)][['title', 'vote_average', 'genres', 'imdb_id', 'poster_path']]
+    movie_details = movie_details.to_dict(orient='records')
+    return movie_details, movie_ids
 
-    movie_details = movies_df[movies_df['id'].isin(movie_ids)][['title', 'vote_average']]
-    
-    return movie_details.to_dict(orient='records')
+
+def display_movie_details(movie_details):
+    if movie_details:
+        for movie in movie_details:
+            cols = st.columns([1, 4]) 
+
+            with cols[0]:
+                poster_url = "https://image.tmdb.org/t/p/original" + str(movie["poster_path"])
+                st.image(poster_url, width=80)
+            
+            with cols[1]:
+                st.markdown(
+                    f"""
+                    **[{movie['title']}](https://www.imdb.com/title/{movie['imdb_id']})**   
+                    *Rating:* {movie['vote_average']}  
+                    *Genres:* {movie['genres']}
+                    """
+                )
+
+
+def parse_recommendation_results(pgrs_result):
+
+    for category, recomended_ids in pgrs_result.items():
+        #st.write("================================================")
+        movie_details = movies_df[movies_df['id'].isin(recomended_ids)][['title', 'vote_average', 'genres', 'imdb_id', 'poster_path']]
+        movie_details = movie_details.to_dict(orient='records')
+        display_movie_details(movie_details)
+
 
 def show():
-    st.header("Recommended Movies for You")
     user_id = st.session_state.get("user_id", None)
     
     if user_id:
-        recommendations = get_recommended_movies(user_id)
-        if recommendations:
-            for movie in recommendations:
-                st.write(f"{movie['title']} (Rating: {movie['vote_average']})")
-        else:
-            st.write("No recommendations found for this user.")
+        watch_history, watch_history_ids = get_user_watch_history(user_id)
+
+        st.divider()
+        st.subheader(f"Recomendations for user ID: {user_id} based on watch history")
+        pgrs_result = pgrs.recommend_on_watch_history(watch_history_ids)
+        parse_recommendation_results(pgrs_result)
+        for category, recomended_ids in pgrs_result.items():
+            print(f"{category} - {[pgrs.get_movie_title(movie_id) for movie_id in recomended_ids]}")
+
     else:
-        st.write("Please go back to the home page to select a User ID.")
+        st.write("Please choose user ID from side bar (it simulates user login)")
+
+
